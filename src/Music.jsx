@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import './App.css'
 
-function App() {
+function Music() {
   const canvasRef = useRef(null);
   const audioRef = useRef(null);
   const [audioContext, setAudioContext] = useState(null);
@@ -90,4 +91,4 @@ function App() {
   );
 }
 
-export default App;
+export default Music;
