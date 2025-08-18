@@ -74,6 +74,7 @@ function App() {
     return () => {
       window.removeEventListener('resize', resize); 
     }
+    setAudioCtx(ctx);
   }, []);
 
   const handlePlay = () => {
@@ -118,11 +119,12 @@ function App() {
       className="border border-gray-600 bg-gray-800 text-white rounded-lg px-4 py-2"
     />
 
-    <audio className='w-full rounded-lg my-5' ref={audioRef} controls src="/KuttyKudiye.mp3"></audio>
+    <audio className='w-full rounded-lg my-5' ref={audioRef} controls crossOrigin="anonymous" src="/KuttyKudiye.mp3"></audio>
     <div className="canvas">
       <canvas
         className="w-full rounded-lg border border-gray-600 shadow-inner bg-black"
         ref={canvasRef}
+
       />
     </div>
   </div>
