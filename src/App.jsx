@@ -74,10 +74,7 @@ function App() {
     return () => {
       window.removeEventListener('resize', resize); 
     }
-    audio.addEventListener("play", () => {
-      ctx.resume();
-      draw();
-    });
+
     setAudioCtx(ctx);
   }, []);
 
