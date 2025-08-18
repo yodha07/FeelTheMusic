@@ -47,10 +47,6 @@ function App() {
         x += barWidth + 1;
       }
 
-      audio.addEventListener("play", () => {
-      ctx.resume(); 
-      draw();
-    });
       // for (let i = 0; i < bufferLength; i++) {
       //   const barHeight = dataArray[i];
       //   const angle = (i / bufferLength) * Math.PI * 2; // full circle
@@ -78,7 +74,10 @@ function App() {
     return () => {
       window.removeEventListener('resize', resize); 
     }
-
+    audio.addEventListener("play", () => {
+      ctx.resume();
+      draw();
+    });
     setAudioCtx(ctx);
   }, []);
 
