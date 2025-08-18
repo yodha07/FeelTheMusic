@@ -49,7 +49,7 @@ function App() {
       }
 
       function resize() {
-        canvas.width = window.innerWidth * 0.9;
+        canvas.width = window.innerWidth * 0.5;
         canvas.height = window.innerHeight * 0.5;
       }
 
