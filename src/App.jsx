@@ -50,7 +50,7 @@ function App() {
 
       function resize() {
         canvas.width = window.innerWidth * 0.5;
-        canvas.height = window.innerHeight * 0.5;
+        canvas.height = window.innerHeight * 0.35;
       }
 
       resize();
@@ -121,7 +121,7 @@ function App() {
 
         <div className="canvas">
           <canvas
-            className="w-full rounded-lg border border-gray-600 shadow-inner bg-black"
+            className="w-full rounded-lg border border-gray-600 shadow-inner bg-black h-full"
             ref={canvasRef}
           />
         </div>
