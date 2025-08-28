@@ -73,20 +73,20 @@ function App() {
     window.location.href = "https://feelthemusicbackend.onrender.com/login"; // change URL
   };
 
-  // 🎧 Spotify Callback → exchange code for token
+  // 🎧 Get Spotify tokens from URL after backend redirect
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
+  const params = new URLSearchParams(window.location.search);
+  const accessToken = params.get("access_token");
+  const refreshToken = params.get("refresh_token");
+  const expiresIn = params.get("expires_in");
 
-    if (code && !spotifyToken) {
-      fetch(`https://feelthemusicbackend.onrender.com/callback?code=${code}`)
-        .then((res) => res.json())
-        .then((data) => {
-          setSpotifyToken(data.access_token);
-          window.history.replaceState({}, document.title, "/"); // clean URL
-        });
-    }
-  }, [spotifyToken]);
+  if (accessToken && !spotifyToken) {
+    setSpotifyToken(accessToken);
+    // (optional) save refreshToken + expiresIn in state/localStorage
+    window.history.replaceState({}, document.title, "/"); // clean the URL
+  }
+}, [spotifyToken]);
+
 
   // 🔍 Search Spotify
   const handleSearch = async (query) => {
