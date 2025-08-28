@@ -70,7 +70,7 @@ function App() {
 
   // 🎧 Spotify Login
   const handleSpotifyLogin = () => {
-    window.location.href = "http://localhost:3000/login"; // change URL
+    window.location.href = "https://feelthemusicbackend.onrender.com/login"; // change URL
   };
 
   // 🎧 Spotify Callback → exchange code for token
@@ -79,7 +79,7 @@ function App() {
     const code = params.get("code");
 
     if (code && !spotifyToken) {
-      fetch(`http://localhost:3000/callback?code=${code}`)
+      fetch(`https://feelthemusicbackend.onrender.com/callback?code=${code}`)
         .then((res) => res.json())
         .then((data) => {
           setSpotifyToken(data.access_token);
