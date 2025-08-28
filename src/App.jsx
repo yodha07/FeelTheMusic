@@ -74,18 +74,52 @@ function App() {
   };
 
   // 🎧 Get Spotify tokens from URL after backend redirect
-  useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  const accessToken = params.get("access_token");
-  const refreshToken = params.get("refresh_token");
-  const expiresIn = params.get("expires_in");
+//   useEffect(() => {
+//   const params = new URLSearchParams(window.location.search);
+//   const accessToken = params.get("access_token");
+//   const refreshToken = params.get("refresh_token");
+//   const expiresIn = params.get("expires_in");
 
-  if (accessToken && !spotifyToken) {
-    setSpotifyToken(accessToken);
-    // (optional) save refreshToken + expiresIn in state/localStorage
-    window.history.replaceState({}, document.title, "/"); // clean the URL
-  }
+//   if (accessToken && !spotifyToken) {
+//     setSpotifyToken(accessToken);
+//     // (optional) save refreshToken + expiresIn in state/localStorage
+//     window.history.replaceState({}, document.title, "/"); // clean the URL
+//   }
+// }, [spotifyToken]);
+
+  useEffect(() => {
+  if (!spotifyToken) return;
+
+  window.onSpotifyWebPlaybackSDKReady = () => {
+    const player = new window.Spotify.Player({
+      name: "FeelTheMusic Web Player",
+      getOAuthToken: cb => cb(spotifyToken),
+      volume: 0.5
+    });
+
+    // Error handling
+    player.addListener("initialization_error", ({ message }) => console.error(message));
+    player.addListener("authentication_error", ({ message }) => console.error(message));
+    player.addListener("account_error", ({ message }) => console.error(message));
+    player.addListener("playback_error", ({ message }) => console.error(message));
+
+    // Ready
+    player.addListener("ready", ({ device_id }) => {
+      console.log("Ready with Device ID", device_id);
+      localStorage.setItem("spotify_device_id", device_id);
+    });
+
+    player.connect();
+
+    // 🎵 Visualizer setup
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const analyser = audioCtx.createAnalyser();
+
+    const source = audioCtx.createMediaElementSource(new Audio()); 
+    
+  };
 }, [spotifyToken]);
+
 
 
   // 🔍 Search Spotify
@@ -102,15 +136,22 @@ function App() {
   };
 
   // ▶️ Play Spotify song
-  const handlePlaySpotify = (previewUrl, name) => {
-    if (previewUrl) {
-      audioRef.current.src = previewUrl;
-      audioRef.current.play();
-      setCurrentSong(name);
-      startVisualizer();
-    } else {
-      alert("No preview available for this track");
+  const handlePlaySpotify = async (trackUri, name) => {
+    if(device_id){
+      alert("Spotify web player not ready yet");
+      return;
     }
+
+    await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+      method: "PUT",
+      body: JSON.stringify({uris: [trackUri]}),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${spotifyToken}`
+      }
+    })
+
+    setCurrentSong(name);
   };
 
   return (
@@ -144,7 +185,7 @@ function App() {
                   key={track.id}
                   className="cursor-pointer hover:text-green-400"
                   onClick={() =>
-                    handlePlaySpotify(track.preview_url, track.name)
+                    handlePlaySpotify(track.uri, track.name)
                   }
                 >
                   {track.name} — {track.artists[0].name}
