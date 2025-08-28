@@ -70,7 +70,7 @@ function App() {
 
   // 🎧 Spotify Login
   const handleSpotifyLogin = () => {
-    window.location.href = "https://feelthemusicbackend.onrender.com/login"; // change URL
+    window.location.href = "https://ftmusic.vercel.app/login"; // change URL
   };
 
   // 🎧 Spotify Callback → exchange code for token
@@ -79,7 +79,7 @@ function App() {
     const code = params.get("code");
 
     if (code && !spotifyToken) {
-      fetch(`https://feelthemusicbackend.onrender.com/callback?code=${code}`)
+      fetch(`https://ftmusic.vercel.app/callback?code=${code}`)
         .then((res) => res.json())
         .then((data) => {
           setSpotifyToken(data.access_token);
