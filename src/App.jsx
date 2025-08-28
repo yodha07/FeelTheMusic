@@ -1,13 +1,16 @@
-import { useRef, useState } from 'react'
-import './App.css'
+import { useRef, useState, useEffect } from "react";
+import "./App.css";
 
 function App() {
   const canvasRef = useRef(null);
   const audioRef = useRef(null);
   const [audioCtx, setAudioCtx] = useState(null);
   const [currentSong, setCurrentSong] = useState("KuttyKudiye.mp3");
+  const [spotifyToken, setSpotifyToken] = useState(null);
+  const [searchResults, setSearchResults] = useState([]);
 
-  const handlePlay = () => {
+  // 🎵 Handle Visualizer Drawing
+  const startVisualizer = () => {
     if (!audioCtx) {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
       const analyser = ctx.createAnalyser();
@@ -21,7 +24,7 @@ function App() {
       const dataArray = new Uint8Array(bufferLength);
 
       const canvas = canvasRef.current;
-      const c = canvas.getContext('2d');
+      const c = canvas.getContext("2d");
 
       function draw() {
         requestAnimationFrame(draw);
@@ -63,21 +66,50 @@ function App() {
     if (audioCtx && audioCtx.state === "suspended") {
       audioCtx.resume();
     }
-
-    audioRef.current.play();
   };
 
-  const handlePause = () => {
-    audioRef.current.pause();
+  // 🎧 Spotify Login
+  const handleSpotifyLogin = () => {
+    window.location.href = "http://localhost:3000/login"; // change URL
   };
 
-  const handleFileChange = (e) => {
-    if (e.target.files.length > 0) {
-      const file = e.target.files[0];
-      const url = URL.createObjectURL(file);
-      audioRef.current.src = url;
+  // 🎧 Spotify Callback → exchange code for token
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+
+    if (code && !spotifyToken) {
+      fetch(`http://localhost:3000/callback?code=${code}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setSpotifyToken(data.access_token);
+          window.history.replaceState({}, document.title, "/"); // clean URL
+        });
+    }
+  }, [spotifyToken]);
+
+  // 🔍 Search Spotify
+  const handleSearch = async (query) => {
+    if (!spotifyToken) return;
+    const res = await fetch(
+      `https://api.spotify.com/v1/search?q=${query}&type=track&limit=5`,
+      {
+        headers: { Authorization: `Bearer ${spotifyToken}` },
+      }
+    );
+    const data = await res.json();
+    setSearchResults(data.tracks.items);
+  };
+
+  // ▶️ Play Spotify song
+  const handlePlaySpotify = (previewUrl, name) => {
+    if (previewUrl) {
+      audioRef.current.src = previewUrl;
       audioRef.current.play();
-      setCurrentSong(file.name);
+      setCurrentSong(name);
+      startVisualizer();
+    } else {
+      alert("No preview available for this track");
     }
   };
 
@@ -89,27 +121,38 @@ function App() {
         </h1>
         <p className="text-gray-300 mb-6">Now Playing {currentSong}</p>
 
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
+        {!spotifyToken ? (
           <button
-            className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white shadow-md w-full sm:w-auto"
-            onClick={handlePlay}
+            className="px-4 py-2 mb-4 rounded-lg bg-green-500 hover:bg-green-600 text-white shadow-md"
+            onClick={handleSpotifyLogin}
           >
-            Play
+            Login with Spotify
           </button>
-          <button
-            className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white shadow-md w-full sm:w-auto"
-            onClick={handlePause}
-          >
-            Pause
-          </button>
-        </div>
-
-        <input
-          type="file"
-          accept="audio/*"
-          onChange={handleFileChange}
-          className="border border-gray-600 bg-gray-800 text-white rounded-lg px-4 py-2"
-        />
+        ) : (
+          <>
+            <input
+              type="text"
+              placeholder="Search Spotify songs..."
+              className="border border-gray-600 bg-gray-800 text-white rounded-lg px-4 py-2 mb-4 w-full"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSearch(e.target.value);
+              }}
+            />
+            <ul className="text-white mb-6">
+              {searchResults.map((track) => (
+                <li
+                  key={track.id}
+                  className="cursor-pointer hover:text-green-400"
+                  onClick={() =>
+                    handlePlaySpotify(track.preview_url, track.name)
+                  }
+                >
+                  {track.name} — {track.artists[0].name}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
 
         <audio
           className="w-full rounded-lg my-5"
@@ -117,6 +160,7 @@ function App() {
           controls
           crossOrigin="anonymous"
           src="/KuttyKudiye.mp3"
+          onPlay={startVisualizer}
         ></audio>
 
         <div className="canvas">
@@ -130,4 +174,4 @@ function App() {
   );
 }
 
-export default App
+export default App;
