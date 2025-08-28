@@ -88,12 +88,22 @@ function App() {
 // }, [spotifyToken]);
 
   useEffect(() => {
-  if (!spotifyToken) return;
+  const params = new URLSearchParams(window.location.search);
+  const accessToken = params.get("access_token");
+  const refreshToken = params.get("refresh_token");
+  const expiresIn = params.get("expires_in");
+
+  if (accessToken && !spotifyToken) {
+    setSpotifyToken(accessToken);
+    // (optional) save refreshToken + expiresIn in state/localStorage
+    window.history.replaceState({}, document.title, "/"); // clean the URL
+  }
+  if (!accessToken) return;
 
   window.onSpotifyWebPlaybackSDKReady = () => {
     const player = new window.Spotify.Player({
       name: "FeelTheMusic Web Player",
-      getOAuthToken: cb => cb(spotifyToken),
+      getOAuthToken: cb => cb(accessToken),
       volume: 0.5
     });
 
